@@ -3,7 +3,6 @@ library(vars)
 library(vegan)
 library(xtable)
 library(stargazer)
-#library(rJST)
 library(dplyr)
 library(tidyr)
 library(lubridate)
@@ -15,9 +14,9 @@ cbbPalette <- c("#000000", "red", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#
 
 #Data Processing
 
-source("code/IRF_flexible_shock.R")
+source("IRF_flexible_shock.R")
 
-load("data/topic_mapping.RData")
+load("dataset/topic_mapping.RData")
 
 
 features <- c("topic1sent1",
@@ -35,10 +34,10 @@ labels <- c("Election Adminstrative-Support",
 
 
 
-labelled_data <- read.csv("label_more - label_more.csv", colClasses=c("handle"="character"))
+labelled_data <- read.csv("../dataset/hand_labeled.csv", colClasses=c("handle"="character"))
 labelled_data <- subset(labelled_data, select = c(handle, classification))
 
-jst_data      <- read.csv("data/jst_results_new.csv",  colClasses=c("handle"="character"))
+jst_data      <- read.csv("../dataset/jst_results_new.csv",  colClasses=c("handle"="character"))
 
 var_data <- merge(x = jst_data, y = labelled_data, by = "handle")
 var_data <- subset(var_data, select = -c(X, docID))
@@ -48,7 +47,7 @@ var_data <- subset(var_data, select=c("handle",
                                       features))
 
 
-time_df     <- read.csv("data/alltweets_8-1-2023.csv", colClasses=c("docID"="character"))
+time_df     <- read.csv("../dataset/alltweets.csv", colClasses=c("docID"="character"))
 time_df <- time_df %>% rename( handle = author_id)
 
 
@@ -94,15 +93,6 @@ Org_vec_wide <- Org_vec_wide %>%
 
 
 ################################
-#initialize lists
-
-
-
-# s_grid  <- 1:3
-# t_grid  <- 1:10
-
-
-
 irf_mat <- list()
 temp.irf <-list()
 idx      <- 1
@@ -114,21 +104,13 @@ kpsstests <-list()
 
 
 
-# temp <- Org_vec_wide %>%dplyr::select(
-#   starts_with(feature))
 
 temp <- Org_vec_wide %>% dplyr::select(starts_with("topic"))
 
 ts.mat         <- ts(temp)
 # do all columns instead of 1:2
-# ts.mat[,1:12]   <- log(ts.mat[,1:12] /(1-ts.mat[,1:12] ))
 ts.mat   <- log(ts.mat /(1-ts.mat))
 
-
-
-
-# getting AICs for all lags
-# var_ics <- VARselect(ts.mat, lag.max=7, type="const")$criteria
 
 
 
@@ -258,16 +240,8 @@ irf_df_t5s3 <- irf_df_t5s3[order(delta),]
 irf_df_t5s3$topic_labels <- factor(irf_df_t5s3$topic_labels, levels = irf_df_t5s3$topic_labels)
 
 
-# irf_df_LEO$delta <- DeltaLOtoDeltaProb_value(irf_df_LEO$IRF,irf_df_LEO$BaseRates)
-# irf_df_LEO <- irf_df_LEO[order(delta),]
-# irf_df_LEO$topic_labels <- factor(irf_df_LEO$topic_labels, levels = irf_df_LEO$topic_labels)
-# 
-# irf_df_NON$delta <- DeltaLOtoDeltaProb_value(irf_df_NON$IRF,irf_df_NON$BaseRates)
-# irf_df_NON <- irf_df_NON[order(delta),]
-# irf_df_NON$topic_labels <- factor(irf_df_NON$topic_labels, levels = irf_df_NON$topic_labels)
 
-
-pdf("new_plots/VAR_t1s1_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t1s1_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t1s1$delta,
                 topic_labels,
                 colour= influenced),
@@ -292,7 +266,7 @@ plot(g)
 dev.off()
 
 
-pdf("new_plots/VAR_t6s1_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t6s1_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t6s1$delta,
                 topic_labels,
                 colour= influenced),
@@ -316,7 +290,7 @@ g<- ggplot(aes( irf_df_t6s1$delta,
 plot(g)
 dev.off()
 
-pdf("new_plots/VAR_t8s1_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t8s1_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t8s1$delta,
                 topic_labels,
                 colour= influenced),
@@ -343,7 +317,7 @@ dev.off()
 
 
 
-pdf("new_plots/VAR_t2s1_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t2s1_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t2s1$delta,
                 topic_labels,
                 colour= influenced),
@@ -367,7 +341,7 @@ g<- ggplot(aes( irf_df_t2s1$delta,
 plot(g)
 dev.off()
 
-pdf("new_plots/VAR_t3s3_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t3s3_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t3s3$delta,
                 topic_labels,
                 colour= influenced),
@@ -391,7 +365,7 @@ g<- ggplot(aes( irf_df_t3s3$delta,
 plot(g)
 dev.off()
 
-pdf("new_plots/VAR_t5s3_lag_days_1_renamed.pdf",height=6,width=9)
+pdf("../plots/VAR_t5s3_lag_days_1.pdf",height=6,width=9)
 g<- ggplot(aes( irf_df_t5s3$delta,
                 topic_labels,
                 colour= influenced),
