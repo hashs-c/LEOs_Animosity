@@ -54,6 +54,10 @@ Next, create a csv file for all tweets in the dataset, where each row correspond
 ### hand_labeled.csv
 This csv contains hand-labeled data classifying users as LEOs or non-LEOs. In it should be three columns: `handle`, `classification`, and `link`. The classification should be one of 1, 0, -1, where 1 classifies the user as a LEO, 0 classifies as non-LEO, and -1 means the user was not found. The link column consists of the base https://twitter.com/intent/user?user_id= + the handle number.
 
+### tweet_id_only.csv
+
+This csv contains all the tweet ids that were obtained through the data collection process that is described in the paper. This file contains the `docID` column of the alltweets.csv file.
+
 
 
 ## Running JST
