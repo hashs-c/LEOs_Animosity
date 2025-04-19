@@ -75,7 +75,7 @@ dfm_speeches <- dfm_subset(dfm_speeches,ntoken(dfm_speeches) >= 3)
 print(Sys.time())
 
 ## Create Paradigm list
-df_p       = read.csv("~/Dropbox/LEOsDetection/data/paradigm.csv")
+df_p       = read.csv("paradigm.csv")
 
 
 
@@ -105,12 +105,12 @@ results <- mclapply(kk,
                           numTopics = kk,
                           numSentiLabs = 3,
                           numIters = 2000)
-                    save(fit,file=paste0("~/Dropbox/LEOsDetection/data/results",kk,".RData"))
+                    save(fit,file=paste0("../dataset/results",kk,".RData"))
                     return(fit) },
                     mc.cores = getOption("mc.cores", 
                                          5L))  
 
-save(results,file="~/Dropbox/LEOsDetection/data/results.RData")
+save(results,file="../dataset/results.RData")
 
 
 
@@ -118,15 +118,15 @@ save(results,file="~/Dropbox/LEOsDetection/data/results.RData")
 
 ### Coherence scores
 
-load("~/Dropbox/LEOsDetection/data/results5.RData")
-load("~/Dropbox/LEOsDetection/data/results10.RData")
-load("~/Dropbox/LEOsDetection/data/results15.RData")
-load("~/Dropbox/LEOsDetection/data/results20.RData")
-load("~/Dropbox/LEOsDetection/data/results25.RData")
-load("~/Dropbox/LEOsDetection/data/results30.RData")
-load("~/Dropbox/LEOsDetection/data/results40.RData")
-load("~/Dropbox/LEOsDetection/data/results50.RData")
-load("~/Dropbox/LEOsDetection/data/results60.RData")
+load("../dataset/results5.RData")
+load("../dataset/results10.RData")
+load("../dataset/results15.RData")
+load("../dataset/results20.RData")
+load("../dataset/results25.RData")
+load("../dataset/results30.RData")
+load("../dataset/results40.RData")
+load("../dataset/results50.RData")
+load("../dataset/results60.RData")
 
 
 dtm = dfm(dfm_speeches, verbose = F)
@@ -174,7 +174,7 @@ scores$c60 <- c60
 scores_T <- scores %>% t() %>% as.data.frame()
 
 
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/coherence_mean_npmi_cosim2.pdf"))
+pdf(paste0("../plots/coherence_mean_npmi_cosim2.pdf"))
 ggplot(data=scores_T,
        aes(x=kk, y=mean_npmi_cosim2))+
   geom_line() +
