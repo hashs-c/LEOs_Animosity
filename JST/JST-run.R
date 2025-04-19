@@ -27,37 +27,16 @@ library(fpc)
 
 
 
-# Set Path
-if(Sys.info()[1]!="Windows"){
-  setwd("~/Dropbox/LEOsDetection/")
-} else {
-  setwd("/Users/danie/Dropbox/LEOsDetection/")
-}
-
-
-
-
 
 #### Load Cleaned Data 
 
-# textData <- readr::read_csv("data/LEOsCleaned/tweetsandauthorid.csv",col_names = "text")
-# metaData <- readr::read_csv("data/LEOsDataRaw/tweetsandauthorid.csv") %>%select(-text,-X1)
+textData <- readr::read_csv("../dataset/clean_dataset.csv")
 
-# textData <- readr::read_csv("data/garbage_dataset.csv", col_names = "tweet", skip=1)
-
-textData <- readr::read_csv("data/clean_dataset.csv")
-
-
-
-
-# textData <- textData %>% rename(doc_id=author_id,handle=id)
-# textData <- textData[!duplicated(textData$doc_id),]
 
 
 
 ## prepare JST model
 attach(textData)
-# llDisplay <- data.frame(doc_id = paste(doc_id),text = paste(text),handle=handle,stringsAsFactors = F)
 llDisplay <- data.frame(author_id = paste(author_id),leo=leo,text = paste(tweet),handle=handle,doc_id=`...1`,stringsAsFactors = F)
 detach(textData)
 
@@ -75,6 +54,7 @@ stop_words_custom = c("thread","say","will","has","by","for","hi","hey","hah",
                       "person","like","come","from","yet","able","abl","wa","yah","yeh","yeah","youv",
                       "need","us", "men", "women", "get", "woman", "man", "amp","amp&","yr","yrs",
                       paste(textData$firstname),paste(tidytext::stop_words$word),stopwords())
+
 # Create tokens for the words you keep
 print(Sys.time())
 toks1   <- tokens(corpus(llDisplay), remove_punct = TRUE)
@@ -111,15 +91,6 @@ paradigm_dict =dictionary(list(positive = top_sents$Token[top_sents$Positive==0.
 
 
 
-
-
-# result.10<- jst(dfm_speeches,
-#              paradigm_dict,
-#              numTopics    = 20,
-#              numSentiLabs = 3,
-#              numIters     = 2000)
-# 
-# save(result.10,file="data/results.10.RData")
 
 
 
@@ -161,21 +132,21 @@ load("~/Dropbox/LEOsDetection/data/results60.RData")
 dtm = dfm(dfm_speeches, verbose = F)
 tcm = Matrix::crossprod(sign(dtm))
 
-# result_co <-sapply(kk,
-#                    FUN=function(x){
-#                      colMeans(coherence(as.matrix(top20words(fit)), 
-#                                         tcm, 
-#                                         metrics = c("mean_logratio", "mean_pmi", "mean_npmi", "mean_difference", "mean_npmi_cosim", "mean_npmi_cosim2"),
-#                                         smooth = 1e-12,
-#                                         n_doc_tcm = N),
-#                               na.rm=T)
-#                      })
-# 
-# # extract parameters 
-# k_opt <- as.numeric(which(result_co[5,]==max(result_co[5,])))
+result_co <-sapply(kk,
+                   FUN=function(x){
+                     colMeans(coherence(as.matrix(top20words(fit)), 
+                                        tcm, 
+                                        metrics = c("mean_logratio", "mean_pmi", "mean_npmi", "mean_difference", "mean_npmi_cosim", "mean_npmi_cosim2"),
+                                        smooth = 1e-12,
+                                        n_doc_tcm = N),
+                              na.rm=T)
+                     })
+
+# extract parameters 
+k_opt <- as.numeric(which(result_co[5,]==max(result_co[5,])))
 
 
-# NOTE: I did this individually because result.10 had a
+# NOTE: this is done individually because result.10 had a
 #       different object name. But this should be done with
 #       the sapply snippet above.
 c60 <- colMeans(coherence(as.matrix(top20words(fit)), 
@@ -261,7 +232,6 @@ dev.off()
 #         summarise_all(list(mean))
 
 
-#       write.csv(PCA_vecs_agg,file="data/JST_training_data.csv")
       
 #       PCA_vecs_agg_ul    <- df_unlabelled%>% 
 #         group_by(handle)%>% 
@@ -271,7 +241,6 @@ dev.off()
 #         summarise_all(list(mean))
       
       
-#       write.csv(PCA_vecs_agg_ul,file="data/JST_test_data.csv")
       
     
     
