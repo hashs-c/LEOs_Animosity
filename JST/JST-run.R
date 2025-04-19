@@ -196,7 +196,7 @@ dev.off()
 
 result<- result.10
 
-labels <- readr::read_csv("data/classify_members_updated_DCE_copy.csv")
+labels <- readr::read_csv("../dataset/hand_labeled.csv")
 
 df      <- get_parameter(result,"theta")
 df_sent <- get_parameter(result,"pi")
