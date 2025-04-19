@@ -4,7 +4,6 @@ library(ggfortify)
 
 
 # Load  NLP Libraries 
-
 library(tidytext)
 library(quanteda)
 library(rJST)
@@ -29,10 +28,9 @@ library(progress)
 
 #### Load Cleaned Data 
 
-load("~/Dropbox/LEOsDetection/data/results.10.original.RData")
-
-labels  <- readr::read_csv("~/Dropbox/LEOsDetection/data/classify_members_updated_DCE_copy.csv")
-time_df <- readr::read_csv("~/Dropbox/LEOsDetection/data/layer_2_chunks/alltweets.csv")
+load("../dataset/results10.RData")
+labels  <- readr::read_csv("../dataset/hand_labeled.csv")
+time_df <- readr::read_csv("../datasets/alltweets.csv")
 
 
 
@@ -76,28 +74,6 @@ th_tweets <- th_summary %>%
 th_tweets <- th_tweets %>% distinct(text, .keep_all=TRUE) %>% arrange(max_sentopic)
 
 
-# theta_summary <- df %>% 
-#   pivot_longer(cols=(topic1sent1:topic10sent3)) %>% 
-#   group_by(name) %>%
-#   mutate(Max=max(value),doc_id=as.numeric(paste(docID))) %>%
-#   filter(Max-0.01>=value) %>%
-#   dplyr::select(name,docID,doc_id)   
-# 
-# theta_emblematic_tweet <- theta_summary %>% 
-#   left_join(time_df%>%mutate(docID=paste(id) ,by=c("docID")) %>%
-#               dplyr::select(text,docID),
-#             by=c("docID")) %>%
-#   ungroup()%>%
-#   dplyr::select(text,name,) %>%
-#   na.omit() %>%
-#   #distinct(name,.keep_all = T) %>%
-#   arrange(name)
-# 
-# 
-# theta_emblematic_tweet <-theta_emblematic_tweet %>% distinct()
-# 
-# save(theta_emblematic_tweet, file = "theta_emblematic_tweet.RData")
-
 # join with date
 time_df<-time_df%>%mutate(docID=paste(id))
 df <- df %>% left_join(time_df,by=c("docID","handle"="author_id")) %>%
@@ -109,19 +85,6 @@ topic_freq <- df %>% ungroup()%>%
 
 time_series <- df %>%group_by(date)%>% summarise(across(-docID,mean))
 
-
-#topic3,sent3 - anti-trump/anti GOP
-#topic7/setn3 - anti trump
-#topic10 sent2
-
-
-#topic10sent2 - R sided
-#topic2sent 1 - R sided
-#topic2sent3 -R sided
-
-
-#topic1sent1 -- normal
-#topic8sent1
 
 topic_labels <- c("Election Adminstrative-Support","BLM Protests-Law Enforcement","Attacking Joeclyn Benson", #1
                   "GOP Lack of Faith in GOP LEOs","Biden/Trump News","Partisans Attacking Each Other", #2
@@ -169,21 +132,9 @@ topic_titles = c('topic1sent1','topic2sent1','topic3sent1','topic4sent1','topic5
                  'topic1sent3','topic2sent3','topic3sent3','topic4sent3','topic5sent3',
                  'topic6sent3','topic7sent3','topic8sent3','topic9sent3','topic10sent3')
 
-# df <- df    %>%
-#   rowwise() %>%
-#   mutate(max_sentopic = topic_titles[which.max(c_across(topic1sent1:topic10sent3))])
 
 df$max_sentopic <- topic_titles[max.col(df[3:32])]
 
-
-# df <- df %>%
-#   rowwise() %>%
-#   mutate(topic_label = case_when(max_sentopic %in% dem_supportGOP ~"Dem-Inflected LEOs Support",
-#                                  max_sentopic %in% pro_leos_neutral ~"Election Administration Guidance",
-#                                  max_sentopic %in% anti_leos_right ~"GOP Hostility",
-#                                  max_sentopic %in% domestic_politics ~"Domestic Politics",
-#                                  max_sentopic %in% troll ~"Trolling",
-#                                  TRUE ~"Other"))
 
 df <- df %>%
   mutate(topic_label = case_when(max_sentopic %in% dem_supportGOP ~"Dem-Inflected LEOs Support",
@@ -199,11 +150,14 @@ df$topic_label <- as.factor(df$topic_label)
 print(summary(df$topic_label))
 
 
-save(df, file="~/Dropbox/LEOsDetection/data/tweet_to_topic_data.RData")
+write.csv(df, "../dataset/jst_results_new.csv")
 
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/composition.pdf"))
 
-# ggplot(data=topic_freq, aes(x=date, y=rollmean(freq/total*100,14,na.pad=T, fill=NA), fill=TopicType)) + 
+
+
+# Visualizations
+
+pdf(paste0("../plots/composition.pdf"))
 ggplot(data=topic_freq, aes(x=date, y=rollapply(freq/total*100, width=14, FUN=function(x) mean(x, na.rm=TRUE), by=1, by.column=TRUE, partial=TRUE, fill=NA, align="right"), fill=TopicType)) +
   geom_area(alpha=0.6 , size=0.5, colour="black")+
   scale_fill_manual(values=c("#046C9A","#ABDDDE","#D69C4E", "red","#ECCBAE", "#000000" ))+
@@ -229,7 +183,7 @@ time_series<-time_series %>% select(date,topic1sent1:topic10sent3)%>%
 
 pro_leos_neutral_short  <- c("topic1sent1","topic4sent1","topic8sent1","topic3sent1")
 
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/proLEOs-nonpartisan.pdf"))
+pdf(paste0("../plots/proLEOs-nonpartisan.pdf"))
 ggplot(data=time_series %>% filter(name %in%pro_leos_neutral_short ),
        aes(x=date,y=value*100))+
   geom_line() +
@@ -251,7 +205,7 @@ dev.off()
 
 anti_leos_right <- c("topic7sent1","topic2sent1","topic5sent3")
 
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/attackLEOs-right.pdf"))
+pdf(paste0("../plots/attackLEOs-right.pdf"))
 ggplot(data=time_series %>%filter(name %in%anti_leos_right ),
        aes(x=date,y=value*100))+
   geom_line(colour="red") +
@@ -271,7 +225,7 @@ dev.off()
 
 
 troll <- c("topic5sent1","topic1sent3","topic3sent2","topic2sent3")
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/troll.pdf"))
+pdf(paste0("../plots/troll.pdf"))
 ggplot(data=time_series %>%filter(name %in%troll ),
        aes(x=date,y=value*100))+
   geom_line(colour="red") +
@@ -293,7 +247,7 @@ dev.off()
 
 
 dem_supportGOP <- c("topic7sent3","topic9sent1")
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/demssupportGOP.pdf"))
+pdf(paste0("../plots/demssupportGOP.pdf"))
 ggplot(data=time_series %>%filter(name %in%dem_supportGOP ),
        aes(x=date,y=value*100))+
   geom_line(colour="blue") +
@@ -315,14 +269,11 @@ dev.off()
 
 
 # volume
-# time_series <- df%>% group_by(date) %>% summarize(across( -author_id,mean,na.rm=T),
-#                                                   total_count = n())
 time_series <- df%>% group_by(date) %>% summarize(total_count = n())
 
-pdf(paste0("~/Dropbox/LEOsDetection/new_plots/tweet_volume.pdf"))
+pdf(paste0("../plots/tweet_volume.pdf"))
 ggplot(data=time_series,
        aes(x=date,y=total_count/1000))+
-  #geom_line(colour="black") +
   geom_line(aes(y=rollmean(total_count/1000, 7, na.pad=TRUE)),colour="black",face="bold") +
   ylab("Number of Tweets (Thousands)")+
   xlab("")+
@@ -356,13 +307,9 @@ coords <- data.frame(coords) %>% mutate(TopicType = case_when(rownames(.)%in% de
                                                               rownames(.)%in% domestic_politics ~"Domestic Politics",
                                                               rownames(.)%in% troll ~"Trolling",
                                                               TRUE ~"Other"))
-# 
-# 
-# 
-# 
-# 
+
 # ## Full Pic
-pdf("~/Dropbox/LEOsDetection/new_plots/topic_position_total.pdf")
+pdf("../plots/topic_position_total.pdf")
 ggplot(data=data.frame(coords),aes(x=PC1,y=PC2))+
   geom_point(aes(colour=as.factor(TopicType)),size=2.5,)+
   scale_color_manual(values=c(wes_palette(n=5, name="Darjeeling2"),"red"))+
@@ -381,7 +328,7 @@ dev.off()
 
 
 ## Zoom in
-pdf("~/Dropbox/LEOsDetection/new_plots/topic_position_zoom.pdf")
+pdf("../plots/topic_position_zoom.pdf")
 ggplot(data=data.frame(coords)%>%filter(PC2<1),aes(x=PC1,y=PC2))+
   geom_point(aes(colour=as.factor(TopicType)),size=2.5,)+
   scale_color_manual(values=c(wes_palette(n=5, name="Darjeeling2"),"red"))+
@@ -397,38 +344,19 @@ ggplot(data=data.frame(coords)%>%filter(PC2<1),aes(x=PC1,y=PC2))+
         legend.text = element_text(size = 17)) +
   guides(color=guide_legend(ncol=2))
 dev.off()
-# 
-# top10words <- topNwords(result.10, 10)
-# top10words <- as.data.frame(t(top10words))
-# top10words <- unite(top10words, words, c(V1, V2, V3, V4, V5, V6, V7, V8, V9, V10), sep=', ')
-# 
-# 
-# #theta_summary <- df %>% 
-# #  pivot_longer(cols=(topic1sent1:topic10sent3)) %>% 
-# #  group_by(name) %>%
-# #  mutate(Max=max(value),doc_id=as.numeric(paste(docID))) %>%
-# #  filter(Max==value) %>%
-# #  dplyr::select(name,docID,doc_id)
-# 
-# senTopic_names <- c('topic1sent1', 'topic2sent1','topic3sent1','topic4sent1','topic5sent1','topic6sent1','topic7sent1','topic8sent1','topic9sent1','topic10sent1',
-#                     'topic1sent2', 'topic2sent2','topic3sent2','topic4sent2','topic5sent2','topic6sent2','topic7sent2','topic8sent2','topic9sent2','topic10sent2',
-#                     'topic1sent3', 'topic2sent3','topic3sent3','topic4sent3','topic5sent3','topic6sent3','topic7sent3','topic8sent3','topic9sent3','topic10sent3')
-# 
+
+
+
+
+# Vulgarity Plot
+                                                
 curse_words = c('fuck', 'shit', 'damn', 'hell', 'cunt', 'bitch', 'whore',
                 'dick', 'ass', 'bastard', 'cock', 'pussy', 'retard', 'skank')
-
-# phi <- get_parameter(result.10, "phi")
 
 phi <- result.10@phi
 phi <- tibble::rownames_to_column(phi, var = "word")
 
 vulgarity_df <- phi %>% filter(word %in% curse_words)
-# vulgarity_df$senTopic <- paste("topic", vulgarity_df$sentiment, "sent", vulgarity_df$topic, sep='')
-
-# vulgarity_comp <- vulgarity_df %>%
-#   group_by(senTopic) %>%
-#   summarise(vulgarity = sum(value))
-# vulgarity_comp <- rename(vulgarity_comp, topic_titles = senTopic)
 
 vulgarity_comp <- subset(vulgarity_df, select = -c(word))
 vulgarity_comp <- vulgarity_comp %>% summarize_all(sum)
@@ -441,8 +369,7 @@ vulgarity_comp$topic_titles <- NULL
 vulgarity_comp <- arrange(vulgarity_comp, vulgarity)
 vulgarity_comp$topic_labels <- factor(vulgarity_comp$topic_labels, levels=vulgarity_comp$topic_labels)
 
-pdf("~/Dropbox/LEOsDetection/new_plots/vulgarity_comp.pdf")
-# ggplot(data=vulgarity_comp, aes(x=senTopic, y=vulgarity)) +
+pdf("../plots/vulgarity_comp.pdf")
 ggplot(data=filter(vulgarity_comp, vulgarity > 0.000001), aes(x=topic_labels, y=vulgarity)) +
   geom_bar(stat="identity") +
   coord_flip() +
@@ -456,5 +383,3 @@ ggplot(data=filter(vulgarity_comp, vulgarity > 0.000001), aes(x=topic_labels, y=
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 dev.off()
 
-
-# write.csv(df, "~/Dropbox/LEOsDetection/data/jst_results_new.csv")
