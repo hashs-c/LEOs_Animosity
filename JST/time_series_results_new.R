@@ -109,6 +109,7 @@ domestic_politics <- c("topic1sent2","topic7sent2","topic2sent2","topic5sent2","
 
 topic_titles <-c(sort(names(df)[3:32])[4:30],sort(names(df)[3:32])[1:3])
 topic_mapping <- data.frame(topic_labels,topic_titles)
+save(topic_mapping, file = "../dataset/topic_mapping.RData")
 
 topic_freq<-topic_freq %>%
   left_join(topic_mapping,by=c("name"="topic_titles")) 
